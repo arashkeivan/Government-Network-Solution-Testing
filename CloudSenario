@@ -1,1 +1,26 @@
 
+
+
+معماری:
+
+```
+اینترنت ── Azure Firewall ── ExpressRoute ── FortiGate On-Prem ── کاربران
+              │
+شبکه ملی ── AWS Network Firewall ── Direct Connect ── کاربران ملی
+```
+
+پیکربندی Azure Firewall (PowerShell):
+
+```powershell
+# ایجاد Rule Collection
+$rule = New-AzFirewallNetworkRule -Name "AllowNational" -Protocol TCP `
+    -SourceAddress "10.1.0.0/16" -DestinationAddress "192.168.1.0/24" `
+    -DestinationPort 80,443
+
+$ruleCollection = New-AzFirewallNetworkRuleCollection -Name "NationalRules" `
+    -Priority 100 -Rule $rule -ActionType "Allow"
+
+$azfw = Get-AzFirewall -Name "NationalFW"
+$azfw.NetworkRuleCollections = $ruleCollection
+Set-AzFirewall -AzureFirewall $azfw
+```
