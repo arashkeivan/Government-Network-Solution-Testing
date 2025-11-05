@@ -1,0 +1,242 @@
+🎯 راهکار ایده‌آل فورتی‌نت - Virtual Domains (VDOMs)
+
+معماری پیشنهادی:
+
+```
+اینترنت خارجی ──┐
+                ├─ FortiGate (با VDOMs) ── کاربران
+فیبر نوری ملی ──┘
+```
+
+مزایای کلیدی:
+
+· حذف نیاز به ۳ کامپیوتر فیزیکی
+· کاهش هزینه‌های سخت‌افزاری و نگهداری
+· امنیت بالاتر با جداسازی منطقی
+· مدیریت متمرکز
+
+🔧 پیکربندی فورتی‌گیت با VDOMs
+
+اسکریپت پیکربندی پایه:
+
+```bash
+# فعال کردن VDOMs
+config system global
+    set vdom-mode multi-vdom
+end
+
+# ایجاد VDOM برای شبکه ملی
+config vdom
+    edit "VDOM_NATIONAL"
+    next
+end
+
+# ایجاد VDOM برای اینترنت
+config vdom
+    edit "VDOM_INTERNET"
+    next
+end
+
+# پیکربندی اینترفیس‌ها در VDOM اینترنت
+config system interface
+    edit "port1"
+        set vdom "VDOM_INTERNET"
+        set mode static
+        set ip 192.168.1.1 255.255.255.0
+        set allowaccess ping https ssh
+    next
+end
+
+# پیکربندی اینترفیس‌ها در VDOM ملی
+config system interface
+    edit "port2"
+        set vdom "VDOM_NATIONAL"
+        set mode static
+        set ip 10.1.1.1 255.255.255.0
+        set allowaccess ping https ssh
+    next
+end
+```
+
+🛡️ پیکربندی امنیتی پیشرفته
+
+اسکریپت پالیسی‌های امنیتی:
+
+```bash
+# پیکربندی فایروال در VDOM اینترنت
+config firewall policy
+    edit 1
+        set name "INTERNET_TO_DMZ"
+        set srcintf "port1"
+        set dstintf "port3"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "HTTP" "HTTPS" "DNS"
+        set utm-status enable
+        set ssl-ssh-profile "certificate-inspection"
+        set av-profile "default"
+        set webfilter-profile "default"
+        set ips-sensor "default"
+        set logtraffic all
+    next
+end
+
+# پیکربندی فایروال در VDOM ملی
+config firewall policy
+    edit 1
+        set name "NATIONAL_NETWORK"
+        set srcintf "port2"
+        set dstintf "port4"
+        set srcaddr "all"
+        set dstaddr "all"
+        set action accept
+        set schedule "always"
+        set service "ALL"
+        set logtraffic all
+    next
+end
+```
+
+🌐 پیکربندی MPLS برای شبکه ملی
+
+اسکریپت اتصال MPLS:
+
+```bash
+# پیکربندی MPLS در VDOM ملی
+config system interface
+    edit "mpls1"
+        set vdom "VDOM_NATIONAL"
+        set mode static
+        set ip 172.16.1.1 255.255.255.252
+        set remote-ip 172.16.1.2 255.255.255.252
+    next
+end
+
+# Routing برای شبکه ملی
+config router static
+    edit 1
+        set gateway 172.16.1.2
+        set device "mpls1"
+    next
+end
+```
+
+💻 راهکار ایستگاه کاری مجازی‌شده
+
+با FortiClient و VDI:
+
+```bash
+# پیکربندی VPN SSL برای دسترسی امن
+config vpn ssl settings
+    set port 443
+    set source-interface "port1"
+end
+
+config vpn ssl web portal
+    edit "VDI_PORTAL"
+        set tunnel-mode enable
+        set ip-pools "VDI_POOL"
+        set split-tunneling disable
+        set user-group "VDI_USERS"
+    next
+end
+```
+
+🔍 سناریو تست نفوذ و اعتبارسنجی
+
+اسکریپت مانیتورینگ و لاگ:
+
+```bash
+# فعال کردن لاگ‌گیری پیشرفته
+config log syslogd setting
+    set status enable
+    set server "192.168.1.100"
+    set port 514
+end
+
+# مانیتورینگ ترافیک بین VDOMs
+config system session-statistics
+    set interval 5
+end
+
+# اسکن آسیب‌پذیری
+execute scan vm start
+```
+
+🏦 اسکریپت نمونه برای سازمان‌های دولتی
+
+پیکربندی ویژه بانک مرکزی:
+
+```bash
+# پیکربندی حفاظت مالی
+config system zone
+    edit "FINANCIAL_ZONE"
+        set interface "port4"
+        set intrazone-deny enable
+    next
+end
+
+# پالیسی‌های امنیتی مالی
+config firewall policy
+    edit 10
+        set name "CENTRAL_BANK_POLICY"
+        set srcintf "port2"
+        set dstintf "port4"
+        set srcaddr "national_networks"
+        set dstaddr "bank_servers"
+        set action accept
+        set service "HTTPS" "SSH"
+        set schedule "business_hours"
+        set groups "BANK_ADMINS"
+        set logtraffic all
+        set av-profile "strict"
+        set ips-sensor "financial_ips"
+        set application-list "banking_apps"
+    next
+end
+```
+
+📊 اسکریپت مانیتورینگ و گزارش‌گیری
+
+```bash
+# گزارش‌گیری امنیتی
+config report layout
+    edit "SECURITY_DAILY"
+        set title "Daily Security Report"
+        set subtitle "VDOM Separation Analysis"
+        set schedule daily
+        set recipients "security-team@organization.com"
+    next
+end
+
+# مانیتورینگ Real-time
+execute log filter category 4
+execute log display
+```
+
+✅ مزایای راهکار پیشنهادی:
+
+1. امنیت: جداسازی کامل ترافیک اینترنت و شبکه ملی
+2. اقتصادی: حذف نیاز به سخت‌افزار اضافی
+3. مدیریت: کنترل متمرکز با FortiManager
+4. مقیاس‌پذیری: امکان توسعه آسان
+5. انعطاف‌پذیری: پشتیبانی از انواع سرویس‌ها
+
+🚀 دستورات اعتبارسنجی نهایی:
+
+```bash
+# تست اتصال‌ها
+execute ping 8.8.8.8
+execute ping 10.1.1.100
+
+# بررسی وضعیت VDOMs
+get system status
+get system performance
+
+# مانیتورینگ sessions
+get system session list
+```
+
+این راهکار ضمن رعایت الزامات امنیتی سازمان‌های دولتی، هزینه‌ها را کاهش داده و مدیریت را ساده‌تر می‌کند.
