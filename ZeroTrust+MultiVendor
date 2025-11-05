@@ -1,1 +1,38 @@
 
+
+اینترنت ── F5 BIG-IP (LB) ── Palo Alto (FW) ── FortiAuthenticator ── کاربران
+                   │
+شبکه ملی ── Cisco ISE (NAC) ── FortiGate ── کاربران ملی
+```
+
+پیکربندی F5 BIG-IP:
+
+```tcl
+# ایجاد Virtual Server برای اینترنت
+ltm virtual INTERNET_VS {
+    destination 192.168.1.100:443
+    ip-protocol tcp
+    mask 255.255.255.255
+    pool INTERNET_POOL
+    profiles {
+        http { }
+        clientssl {
+            cert-key-chain {
+                INTERNET_CHAIN
+            }
+        }
+    }
+}
+```
+
+پیکربندی Cisco ISE:
+
+```bash
+# ایجاد Policy Set
+configuration
+policy-set NATIONAL_ACCESS
+ condition employee AND national_network
+ permission LIMITED_ACCESS
+
+endpoint identity-group create name=NATIONAL_DEVICES
+```
