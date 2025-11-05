@@ -1,1 +1,39 @@
 
+
+```
+اینترنت ── MikroTik Router ── FortiGate ── کاربران
+              │
+MPLS ملی ── Cisco ASA ── Cisco Switch ── کاربران ملی
+```
+
+پیکربندی MikroTik:
+
+```routeros
+# ایجاد VLANهای مجزا
+/interface vlan add interface=ether1 name=INTERNET_VLAN vlan-id=100
+/interface vlan add interface=ether2 name=NATIONAL_VLAN vlan-id=200
+
+# پیکربندی MPLS
+/mpls ldp add enabled=yes
+/mpls ldp interface add interface=NATIONAL_VLAN
+
+# فایروال پایه
+/ip firewall filter add chain=forward action=drop src-address=10.1.0.0/16 dst-address=0.0.0.0/0
+```
+
+پیکربندی Cisco ASA:
+
+```cisco
+! پیکربندی MPLS
+interface GigabitEthernet0/0
+ nameif MPLS
+ security-level 50
+ ip address 172.16.1.1 255.255.255.252
+ mpls ip
+
+! Routing برای شبکه ملی
+router bgp 65001
+ bgp router-id 172.16.1.1
+ network 10.1.0.0 mask 255.255.0.0
+ neighbor 172.16.1.2 remote-as 65002
+```
