@@ -1,1 +1,36 @@
 
+اینترنت ── FortiGate (VDOM Internet) ── کاربران
+              │
+MPLS ملی ── Palo Alto FW ── FortiSwitch ── کاربران شبکه ملی
+```
+
+پیکربندی Palo Alto:
+
+```bash
+# تنظیمات پایه
+configure
+set deviceconfig system hostname PAN-FW-NATIONAL
+set deviceconfig setting config-key "Your-Config-Key"
+
+# ایجاد Zoneهای مجزا
+set network zones zone INTERNET security internet
+set network zones zone NATIONAL security national
+set network zones zone DMZ security dmz
+
+# اختصاص اینترفیس
+set network interface ethernet ethernet1/1 zone INTERNET
+set network interface ethernet ethernet1/1 ip 192.168.1.1/24
+set network interface ethernet ethernet1/2 zone NATIONAL  
+set network interface ethernet ethernet1/2 ip 10.1.1.1/24
+
+# پالیسی امنیتی
+set rulebase security rules RULE-INTERNET-TO-NATIONAL from INTERNET
+set rulebase security rules RULE-INTERNET-TO-NATIONAL to NATIONAL
+set rulebase security rules RULE-INTERNET-TO-NATIONAL source any
+set rulebase security rules RULE-INTERNET-TO-NATIONAL destination any
+set rulebase security rules RULE-INTERNET-TO-NATIONAL application any
+set rulebase security rules RULE-INTERNET-TO-NATIONAL action deny
+
+commit
+```
+
