@@ -1,1 +1,45 @@
 
+
+اینترنت ── Cisco Firepower ── کاربران
+              │
+فیبر نوری ملی ── Check Point ── Cisco Switch ── کاربران ملی
+```
+
+پیکربندی Cisco Firepower:
+
+```cisco
+! پیکربندی اینترفیس‌ها
+interface GigabitEthernet0/0
+ nameif INTERNET
+ security-level 0
+ ip address 192.168.1.1 255.255.255.0
+
+interface GigabitEthernet0/1  
+ nameif NATIONAL
+ security-level 100
+ ip address 10.1.1.1 255.255.255.0
+
+! پالیسی دسترسی
+access-list INTERNET-ACL extended deny ip any any
+access-group INTERNET-ACL in interface INTERNET
+
+! NAT Configuration
+object network NATIONAL-NET
+ subnet 10.1.0.0 255.255.0.0
+ nat (NATIONAL,INTERNET) dynamic interface
+```
+
+پیکربندی Check Point:
+
+```bash
+# ایجاد Security Policy
+cpconfig
+# ایجاد Objectهای شبکه
+mgmt_cli add network name "NATIONAL_NETWORK" subnet 10.1.0.0 mask 255.255.0.0
+mgmt_cli add host name "NATIONAL_GW" ip-address 10.1.1.1
+
+# ایجاد Rule
+mgmt_cli add access-rule layer "Network Layer" position 1 name "BLOCK_INTERNET" source.1 "NATIONAL_NETWORK" destination.1 "INTERNET_NET" action Drop
+
+install policy
+```
