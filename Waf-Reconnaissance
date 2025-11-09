@@ -1,1 +1,74 @@
+متخصصان امنیتی از کالی لینوکس برای تست نفوذ FortiGate WAF استفاده میکنند. در ادامه به انواع اصلی این تستها اشاره میکنم:
+
+۱. تستهای شناسایی و کشف (Reconnaissance)
+
+· Nmap Scanning: شناسایی پورتهای باز و سرویسها
+· WAFW00F: تشخیص حضور و نوع WAF
+· WhatWeb: شناسایی تکنولوژیهای وب
+
+۲. تستهای ارزیابی WAF
+
+· اتصال مستقیم به پورت ۸۰/۴۴۳: بررسی قوانین WAF
+· تست SSL/TLS: ارزیابی پیکربندی SSL
+· بررسی هدرهای HTTP: شناسایی اطلاعات فنی
+
+۳. تستهای نفوذ به برنامه وب
+
+SQL Injection
+
+```bash
+sqlmap -u "http://Erp.Swesc.ir/page?id=1" --level=5 --risk=3
+```
+
+XSS (Cross-Site Scripting)
+
+```bash
+xsstrike -u "http://Erp.Swesc.ir/search?q=test"
+```
+
+File Inclusion
+
+```bash
+ffuf -w wordlist.txt -u "http://Erp.Swesc.ir/page?file=FUZZ"
+```
+
+Command Injection
+
+· تست تزریق دستورات سیستمی
+· استفاده از ابزارهای like Commix
+
+۴. تستهای دور زدن WAF
+
+· Encoding Techniques:
+  · Base64 encoding
+  · URL encoding
+  · Unicode encoding
+· HTTP Method Override:
+  · GET, POST, PUT, DELETE
+  · HTTP verb tampering
+· Protocol-Level Attacks:
+  · HTTP Request Smuggling
+  · HTTP/2 exploits
+
+۵. تستهای DoS (با احتیاط)
+
+· Slowloris Attacks
+· HTTP Flood
+· Resource Exhaustion
+
+ابزارهای متداول در کالی لینوکس:
+
+اسکنرهای امنیتی
+
+· Burp Suite: آنالیز کامل برنامه وب
+· OWASP ZAP: اسکنر امنیتی متن باز
+· Nikto: اسکنر آسیبپذیری وب
+
+ابزارهای تخصصی
+
+· Wfuzz: فازینگ پارامترهای وب
+· Gobuster: دیрекتری بروت فورس
+· Skipfish: اسکنر امنیتی خودکار
+
+
 
